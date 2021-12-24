@@ -9,6 +9,7 @@ Build and runtime images in `docker`
 
 
 ## Results Compare
+use `github.com/Kagami/go-face`
 
 ```
 2021/12/24 20:16:23 Init ok 5
@@ -115,6 +116,9 @@ Build and runtime images in `docker`
 2021/12/24 20:16:31 3 /data/asset/images/nana.jpg 1 (484,698)-(1126,1340) (784,1148)
 ```
 
+
+
+use `github.com/yinyajun/go-face`
 ```
 2021/12/24 20:15:48 Init ok 5
 2021/12/24 20:15:48 Find 34 test images
