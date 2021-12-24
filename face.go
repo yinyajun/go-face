@@ -1,7 +1,7 @@
 package face
 
 // #cgo CXXFLAGS: -std=c++1z -Wall -O3 -DNDEBUG -march=native
-// #cgo LDFLAGS: -ldlib -ljpeg /usr/lib/libopenblas.so
+// #cgo LDFLAGS: -ldlib -ljpeg -lopenblas
 // #include <stdlib.h>
 // #include <stdint.h>
 // #include <face.h>
