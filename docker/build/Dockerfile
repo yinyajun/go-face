@@ -1,0 +1,87 @@
+FROM golang:1.16-alpine3.13
+
+LABEL maintainer="yinyajun"
+
+ENV OPENCV_VERSION=4.5.1
+ENV DLIB_VERSION=19.22
+ENV BUILD="ca-certificates \
+         git \
+         build-base \
+         musl-dev \
+         alpine-sdk \
+         make \
+         gcc \
+         g++ \
+         libc-dev \
+         linux-headers \
+         libjpeg-turbo \
+         libpng \
+         libwebp \
+         libwebp-dev \
+         tiff \
+         libavc1394 \
+         openblas \
+         libgphoto2 \
+         gstreamer \
+         gst-plugins-base\
+         ffmpeg"
+
+ENV DEV="clang clang-dev cmake pkgconf \
+         openblas-dev gstreamer-dev gst-plugins-base-dev \
+         libgphoto2-dev libjpeg-turbo-dev libpng-dev \
+         tiff-dev libavc1394-dev"
+
+
+
+ENV PKG_CONFIG_PATH /usr/local/lib64/pkgconfig
+ENV LD_LIBRARY_PATH /usr/local/lib64
+ENV CGO_CPPFLAGS -I/usr/local/include
+ENV CGO_CXXFLAGS "--std=c++1z"
+ENV CGO_LDFLAGS "-L/usr/local/lib -lopencv_core -lopencv_face -lopencv_videoio -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -lopencv_objdetect -lopencv_features2d -lopencv_video -lopencv_dnn -lopencv_xfeatures2d -lopencv_plot -lopencv_tracking"
+
+RUN apk update && \
+    apk add --no-cache ${BUILD} ${DEV}&& \
+    mkdir /tmp/opencv && \
+    cd /tmp/opencv && \
+    wget -O opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
+    unzip opencv.zip && \
+    wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip && \
+    unzip opencv_contrib.zip && \
+    mkdir /tmp/opencv/opencv-${OPENCV_VERSION}/build && cd /tmp/opencv/opencv-${OPENCV_VERSION}/build && \
+    cmake \
+    -D CMAKE_BUILD_TYPE=RELEASE \
+    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D OPENCV_EXTRA_MODULES_PATH=/tmp/opencv/opencv_contrib-${OPENCV_VERSION}/modules \
+    -D WITH_FFMPEG=YES \
+    -D INSTALL_C_EXAMPLES=NO \
+    -D INSTALL_PYTHON_EXAMPLES=NO \
+    -D BUILD_ANDROID_EXAMPLES=NO \
+    -D BUILD_DOCS=NO \
+    -D BUILD_TESTS=NO \
+    -D BUILD_PERF_TESTS=NO \
+    -D BUILD_EXAMPLES=NO \
+    -D BUILD_opencv_java=NO \
+    -D BUILD_opencv_python=NO \
+    -D BUILD_opencv_python2=NO \
+    -D BUILD_opencv_python3=NO \
+    -D OPENCV_GENERATE_PKGCONFIG=YES .. && \
+    make -j$(nproc) && \
+    make install && \
+    cd && rm -rf /tmp/opencv && \
+    mkdir /tmp/dlib && \
+    cd /tmp/dlib &&\
+    wget -O  dlib.zip https://github.com/davisking/dlib/archive/refs/tags/v${DLIB_VERSION}.zip && \
+    unzip dlib.zip && \
+    cd dlib-${DLIB_VERSION} && \
+    mkdir build && \
+    cd build && \
+    cmake \
+    -D USE_AVX_INSTRUCTIONS=1 \
+    -D DLIB_NO_GUI_SUPPORT=1 \
+    -D DLIB_LINK_WITH_SQLITE3=0 .. && \
+    cmake --build . --config Release && \
+    make install && \
+    cd && rm -rf /tmp/dlib && \
+    apk add --no-cache docker-cli && \
+    apk del ${DEV_DEPS} && \
+    rm -rf /var/cache/apk/* \
